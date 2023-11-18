@@ -1,9 +1,33 @@
+# Versión de la especificación de Docker Compose
 version: '3.8'
+
+# Definición de servicios
 services:
+  # Servicio para la base de datos MySQL
   mysqldb:
+    # Utiliza la imagen oficial de MySQL desde Docker Hub
     image: mysql
+    # Carga variables de entorno desde el archivo .env
+    env_file:
+      - .env
+    # Configuración de variables de entorno específicas para MySQL
     environment:
-      - MYSQL_ROOT_PASSWORD=123456
-      - MYSQL_DATABASE=ivandb
+      MYSQL_ROOT_PASSWORD: ${MYSQLDB_PASSWORD}
+      MYSQL_DATABASE: ${MYSQLDB_DATABASE}
+    # Mapea los puertos locales a los puertos del contenedor MySQL
     ports:
-      - 3307:3306
+      - "${MYSQLDB_LOCAL_PORT}:${MYSQLDB_DOCKER_PORT}"
+
+  # Servicio para la aplicación Node.js
+  app:
+    # Construye la imagen de la aplicación a partir del Dockerfile en el directorio actual
+    build: .
+    # Dependencia del servicio mysqldb, asegura que mysqldb se inicie antes que la aplicación
+    depends_on:
+      - mysqldb
+    # Enlaces (deprecated, pero aún se admite) a otros servicios (mysqldb)
+    links:
+      - mysqldb
+    # Mapea los puertos locales a los puertos del contenedor de la aplicación Node.js
+    ports:
+      - "${NODE_LOCAL_PORT}:${NODE_DOCKER_PORT}"
